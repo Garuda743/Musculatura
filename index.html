@@ -1,0 +1,1557 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fuerza y Rendimiento - WebApp</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        slate: {
+                            950: '#0b1329',
+                        },
+                        amber: {
+                            500: '#f59e0b',
+                            600: '#d97706',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Material Symbols and FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0..1,0" rel="stylesheet" />
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Modern Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col md:flex-row antialiased overflow-x-hidden">
+
+    <!-- SIDEBAR FOR DESKTOP (MD+) -->
+    <aside class="hidden md:flex flex-col w-64 bg-slate-900 border-r border-slate-800 p-6 shrink-0 h-screen sticky top-0">
+        <div class="flex items-center gap-3 mb-8">
+            <span class="material-symbols-outlined text-amber-500 text-3xl font-bold">fitness_center</span>
+            <div class="flex flex-col">
+                <span class="font-black text-lg tracking-wider text-amber-500 leading-none">FUERZA</span>
+                <span class="text-xs font-semibold text-slate-400">Y RENDIMIENTO</span>
+            </div>
+        </div>
+
+        <nav class="flex flex-col gap-2 flex-grow">
+            <button onclick="switchTab('train')" id="side-tab-train" class="nav-btn-active flex items-center gap-4 px-4 py-3 rounded-xl transition duration-200 font-semibold w-full text-left">
+                <span class="material-symbols-outlined">fitness_center</span>
+                <span>Entrenar</span>
+            </button>
+            <button onclick="switchTab('history')" id="side-tab-history" class="nav-btn-inactive flex items-center gap-4 px-4 py-3 rounded-xl transition duration-200 font-semibold w-full text-left">
+                <span class="material-symbols-outlined">history</span>
+                <span>Historial</span>
+            </button>
+            <button onclick="switchTab('exercises')" id="side-tab-exercises" class="nav-btn-inactive flex items-center gap-4 px-4 py-3 rounded-xl transition duration-200 font-semibold w-full text-left">
+                <span class="material-symbols-outlined">format_list_bulleted</span>
+                <span>Ejercicios</span>
+            </button>
+            <button onclick="switchTab('coach')" id="side-tab-coach" class="nav-btn-inactive flex items-center gap-4 px-4 py-3 rounded-xl transition duration-200 font-semibold w-full text-left">
+                <span class="material-symbols-outlined">smart_toy</span>
+                <span>Coach IA</span>
+            </button>
+        </nav>
+
+        <div class="border-t border-slate-800 pt-6 flex flex-col gap-2">
+            <button onclick="openSettingsModal()" class="flex items-center gap-4 px-4 py-2 text-sm text-slate-400 hover:text-white transition duration-200 w-full text-left">
+                <span class="material-symbols-outlined text-lg">settings</span>
+                <span>Ajustes / Sincronizar</span>
+            </button>
+            <div class="text-xs text-slate-500 mt-2 text-center">v1.1 (WebApp Móvil/PC)</div>
+        </div>
+    </aside>
+
+    <!-- MOBILE TOP BAR -->
+    <header class="md:hidden flex items-center justify-between px-6 py-4 bg-slate-900 border-b border-slate-800 sticky top-0 z-40">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-amber-500 text-2xl font-bold">fitness_center</span>
+            <span class="font-black text-sm tracking-widest text-amber-500">FUERZA Y RENDIMIENTO</span>
+        </div>
+        <button onclick="openSettingsModal()" class="w-10 h-10 flex items-center justify-center text-slate-400 active:text-white rounded-full bg-slate-800/50">
+            <span class="material-symbols-outlined">settings</span>
+        </button>
+    </header>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-grow flex flex-col min-h-0 w-full relative">
+        <div id="content-container" class="p-4 md:p-8 flex-grow overflow-y-auto pb-24 md:pb-8">
+            <!-- Tabs are rendered dynamically in this container -->
+        </div>
+    </main>
+
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 flex justify-around py-2 px-4 z-40">
+        <button onclick="switchTab('train')" id="mobile-tab-train" class="flex flex-col items-center justify-center py-1 text-xs font-bold transition w-16 text-amber-500">
+            <span class="material-symbols-outlined text-2xl">fitness_center</span>
+            <span class="text-[10px] mt-0.5">Entrenar</span>
+        </button>
+        <button onclick="switchTab('history')" id="mobile-tab-history" class="flex flex-col items-center justify-center py-1 text-xs font-bold transition w-16 text-slate-400">
+            <span class="material-symbols-outlined text-2xl">history</span>
+            <span class="text-[10px] mt-0.5">Historial</span>
+        </button>
+        <button onclick="switchTab('exercises')" id="mobile-tab-exercises" class="flex flex-col items-center justify-center py-1 text-xs font-bold transition w-16 text-slate-400">
+            <span class="material-symbols-outlined text-2xl">format_list_bulleted</span>
+            <span class="text-[10px] mt-0.5">Ejercicios</span>
+        </button>
+        <button onclick="switchTab('coach')" id="mobile-tab-coach" class="flex flex-col items-center justify-center py-1 text-xs font-bold transition w-16 text-slate-400">
+            <span class="material-symbols-outlined text-2xl">smart_toy</span>
+            <span class="text-[10px] mt-0.5">Coach IA</span>
+        </button>
+    </nav>
+
+    <!-- MODAL DIALOGS -->
+    <!-- Start Workout Modal -->
+    <div id="start-workout-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <h3 class="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-500">play_circle</span>
+                Iniciar Entrenamiento
+            </h3>
+            <p class="text-sm text-slate-400 mb-4">Introduce un nombre para tu entrenamiento o déjalo en blanco para empezar libre.</p>
+            <input type="text" id="workout-name-input" placeholder="Ej. Día de Empuje, Rutina A..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 mb-6 text-base">
+            <div class="flex justify-end gap-3">
+                <button onclick="closeModal('start-workout-modal')" class="px-5 py-2.5 rounded-xl border border-slate-700 font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition text-sm">Cancelar</button>
+                <button onclick="startWorkout()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 font-bold text-slate-950 shadow-lg shadow-amber-500/20 transition text-sm">Empezar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Exercise to Active Workout Modal -->
+    <div id="add-exercise-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 shadow-2xl relative flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-500">add_circle</span>
+                    Añadir Ejercicio
+                </h3>
+                <button onclick="closeModal('add-exercise-modal')" class="text-slate-400 hover:text-white"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <!-- Search & Filters -->
+            <div class="flex flex-col gap-3 mb-4">
+                <input type="text" id="exercise-search-active" oninput="filterActiveExercisesModal()" placeholder="Buscar ejercicio..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-sm">
+                <div class="flex gap-1 overflow-x-auto pb-1" id="exercise-muscle-filters-active">
+                    <!-- Filters injected here -->
+                </div>
+            </div>
+            <!-- Exercise List -->
+            <div class="flex-grow overflow-y-auto space-y-2 pr-1" id="active-modal-exercise-list">
+                <!-- Exercises injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Finish Workout / Add Notes Modal -->
+    <div id="finish-workout-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <h3 class="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-500">check_circle</span>
+                ¡Excelente Entrenamiento!
+            </h3>
+            <p class="text-sm text-slate-400 mb-4">Agrega alguna nota o comentario sobre cómo te sentiste, tu energía o tus metas de hoy.</p>
+            <textarea id="workout-notes-input" placeholder="Ej. Me sentí fuerte en press de banca hoy. Dieta y sueño perfectos." class="w-full h-24 bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 mb-6 text-base resize-none"></textarea>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeModal('finish-workout-modal')" class="px-5 py-2.5 rounded-xl border border-slate-700 font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition text-sm">Volver</button>
+                <button onclick="saveActiveWorkout()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 font-bold text-slate-950 shadow-lg shadow-amber-500/20 transition text-sm">Guardar y Terminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Exercise Modal -->
+    <div id="custom-exercise-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative">
+            <h3 class="text-xl font-bold text-slate-100 mb-4 flex items-center gap-2">
+                <span class="material-symbols-outlined text-amber-500">add</span>
+                Crear Ejercicio Personalizado
+            </h3>
+            <div class="space-y-4 mb-6">
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Nombre del Ejercicio</label>
+                    <input type="text" id="custom-ex-name" placeholder="Ej. Zancadas con Mancuerna" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Grupo Muscular</label>
+                    <select id="custom-ex-muscle" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 focus:outline-none focus:border-amber-500 text-sm">
+                        <option value="Pecho">Pecho</option>
+                        <option value="Espalda">Espalda</option>
+                        <option value="Piernas">Piernas</option>
+                        <option value="Hombros">Hombros</option>
+                        <option value="Brazos">Brazos</option>
+                        <option value="Core">Core</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-400 mb-1.5">Descripción (Opcional)</label>
+                    <textarea id="custom-ex-desc" placeholder="Instrucciones breves de ejecución..." class="w-full h-20 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-sm resize-none"></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3">
+                <button onclick="closeModal('custom-exercise-modal')" class="px-5 py-2.5 rounded-xl border border-slate-700 font-semibold text-slate-400 hover:text-white hover:bg-slate-800 transition text-sm">Cancelar</button>
+                <button onclick="createCustomExercise()" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 font-bold text-slate-950 shadow-lg shadow-amber-500/20 transition text-sm">Crear Ejercicio</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings & Sync Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 shadow-2xl relative flex flex-col max-h-[85vh]">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-amber-500">settings</span>
+                    Ajustes de Sincronización
+                </h3>
+                <button onclick="closeModal('settings-modal')" class="text-slate-400 hover:text-white"><span class="material-symbols-outlined">close</span></button>
+            </div>
+            <div class="space-y-6 overflow-y-auto flex-grow pr-1 mb-4">
+                <!-- Gemini API Key configuration for Web Browser -->
+                <div class="p-4 bg-slate-800/50 border border-slate-800 rounded-xl">
+                    <h4 class="font-bold text-sm text-slate-200 mb-2 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-500 text-lg">vpn_key</span>
+                        Clave Gemini API (Navegador Standalone)
+                    </h4>
+                    <p class="text-xs text-slate-400 mb-3">Si usas esta WebApp directamente desde tu PC o móvil sin la app Android, introduce tu clave de Gemini API para usar el Coach de IA de forma directa y gratuita.</p>
+                    <input type="password" id="gemini-api-key-input" placeholder="AIzaSy..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500">
+                    <button onclick="saveGeminiKey()" class="mt-3 w-full py-1.5 bg-slate-700 hover:bg-slate-600 font-semibold text-xs rounded-lg transition text-slate-200">Guardar Clave</button>
+                </div>
+
+                <!-- Backup Data Section -->
+                <div class="p-4 bg-slate-800/50 border border-slate-800 rounded-xl">
+                    <h4 class="font-bold text-sm text-slate-200 mb-2 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-amber-500 text-lg">backup</span>
+                        Copia de Seguridad (Exportar/Importar)
+                    </h4>
+                    <p class="text-xs text-slate-400 mb-4">Exporta todo tu historial de entrenamiento y ejercicios como un archivo JSON. Puedes importarlo en cualquier momento para restaurar tus datos en tu móvil u ordenador.</p>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="exportBackup()" class="py-2.5 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 font-semibold text-xs text-amber-500 rounded-lg transition flex items-center justify-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">download</span> Exportar Datos
+                        </button>
+                        <button onclick="document.getElementById('import-file-input').click()" class="py-2.5 bg-slate-700 hover:bg-slate-600 font-semibold text-xs text-slate-200 rounded-lg transition flex items-center justify-center gap-1.5">
+                            <span class="material-symbols-outlined text-base">upload</span> Importar Datos
+                        </button>
+                        <input type="file" id="import-file-input" onchange="importBackup(event)" accept=".json" class="hidden">
+                    </div>
+                </div>
+
+                <!-- Reset Data Section -->
+                <div class="p-4 bg-red-950/20 border border-red-900/30 rounded-xl">
+                    <h4 class="font-bold text-sm text-red-400 mb-1 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-red-500 text-lg">warning</span>
+                        Borrar Datos del Aplicativo
+                    </h4>
+                    <p class="text-xs text-slate-400 mb-3">Esto restablecerá de fábrica el aplicativo eliminando tus entrenamientos y récords del almacenamiento de tu navegador actual.</p>
+                    <button onclick="resetAllAppData()" class="w-full py-2 bg-red-900/30 hover:bg-red-900/50 border border-red-800/30 font-bold text-xs text-red-400 rounded-lg transition">Restablecer Aplicativo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- CORE APPLICATION JAVASCRIPT LOGIC -->
+    <script>
+        // --- CONSTANTS ---
+        const DEFAULT_EXERCISES = [
+            { id: "bench_press", name: "Press de Banca", muscleGroup: "Pecho", description: "Acuéstate en un banco plano, baja la barra al pecho medio y empuja hacia arriba. Ejercicio compuesto estrella para el pectoral.", isCustom: false },
+            { id: "squat", name: "Sentadilla Libre", muscleGroup: "Piernas", description: "Coloca la barra en los trapecios, desciende flexionando cadera y rodillas hasta pasar los 90 grados y sube. Fortalece cuádriceps y glúteos.", isCustom: false },
+            { id: "deadlift", name: "Peso Muerto", muscleGroup: "Piernas", description: "Levanta la barra desde el suelo manteniendo la espalda recta, extendiendo caderas y rodillas. Excelente para la cadena posterior.", isCustom: false },
+            { id: "pull_up", name: "Dominadas", muscleGroup: "Espalda", description: "Cuélgate de una barra con agarre prono y jala tu cuerpo hacia arriba hasta que la barbilla pase la barra.", isCustom: false },
+            { id: "overhead_press", name: "Press Militar con Barra", muscleGroup: "Hombros", description: "Empuja la barra verticalmente por encima de la cabeza desde la posición del hombro de pie.", isCustom: false },
+            { id: "barbell_curl", name: "Curl de Bíceps con Barra", muscleGroup: "Brazos", description: "De pie, sujeta la barra con agarre supino y flexiona los codos llevando el peso hacia los hombros.", isCustom: false },
+            { id: "tricep_dips", name: "Fondos en Paralelas", muscleGroup: "Brazos", description: "Sostén tu peso en barras paralelas, desciende flexionando los codos hasta unos 90 grados y empuja.", isCustom: false },
+            { id: "lat_pulldown", name: "Jalón al Pecho", muscleGroup: "Espalda", description: "Sentado en la polea alta, jala la barra hacia la parte superior del pecho contrayendo las escápulas.", isCustom: false },
+            { id: "leg_press", name: "Prensa de Piernas", muscleGroup: "Piernas", description: "Sentado en la máquina de prensa, empuja la plataforma con los pies para trabajar cuádriceps.", isCustom: false },
+            { id: "plank", name: "Plancha Abdominal", muscleGroup: "Core", description: "Sostén el cuerpo en línea recta apoyado en antebrazos y puntas de pie, manteniendo el abdomen contraído.", isCustom: false }
+        ];
+
+        // --- APP STATE ---
+        let appState = {
+            currentTab: 'train',
+            exercises: [],
+            sessions: [],
+            activeSession: null, // { name: '', startTime: null, elapsedSeconds: 0, exercises: [] }
+            chatMessages: [],
+            isAiLoading: false,
+            geminiApiKey: '',
+            selectedMuscleFilter: 'Todos',
+            selectedActiveMuscleFilter: 'Todos'
+        };
+
+        let timerInterval = null;
+        let volumeChart = null;
+
+        // --- INITIALIZATION ---
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDataFromLocalStorage();
+            switchTab('train');
+            setupBackupReceiver();
+        });
+
+        function loadDataFromLocalStorage() {
+            // Load exercises or prepopulate
+            const storedExercises = localStorage.getItem('fy_exercises');
+            if (storedExercises) {
+                appState.exercises = JSON.parse(storedExercises);
+            } else {
+                appState.exercises = [...DEFAULT_EXERCISES];
+                localStorage.setItem('fy_exercises', JSON.stringify(appState.exercises));
+            }
+
+            // Load training sessions history
+            const storedSessions = localStorage.getItem('fy_sessions');
+            if (storedSessions) {
+                appState.sessions = JSON.parse(storedSessions);
+            } else {
+                appState.sessions = [];
+            }
+
+            // Load active session state
+            const storedActiveSession = localStorage.getItem('fy_active_session');
+            if (storedActiveSession) {
+                appState.activeSession = JSON.parse(storedActiveSession);
+                resumeWorkoutTimer();
+            }
+
+            // Load Gemini API Key
+            appState.geminiApiKey = localStorage.getItem('fy_gemini_key') || '';
+            document.getElementById('gemini-api-key-input').value = appState.geminiApiKey;
+
+            // Load Chat Messages
+            const storedChat = localStorage.getItem('fy_chat_messages');
+            if (storedChat) {
+                appState.chatMessages = JSON.parse(storedChat);
+            } else {
+                appState.chatMessages = [
+                    { text: "¡Hola! Soy tu Coach de Fuerza y Rendimiento de IA. 💪\n\n¿En qué te puedo ayudar hoy? Puedo diseñar una rutina de entrenamiento efectiva, darte consejos sobre progresión de cargas o responder tus dudas sobre nutrición y descanso.", isUser: false, timestamp: Date.now() }
+                ];
+            }
+        }
+
+        function saveStateToLocalStorage() {
+            localStorage.setItem('fy_exercises', JSON.stringify(appState.exercises));
+            localStorage.setItem('fy_sessions', JSON.stringify(appState.sessions));
+            localStorage.setItem('fy_chat_messages', JSON.stringify(appState.chatMessages));
+            if (appState.activeSession) {
+                localStorage.setItem('fy_active_session', JSON.stringify(appState.activeSession));
+            } else {
+                localStorage.removeItem('fy_active_session');
+            }
+        }
+
+        // --- NAVIGATION & TABS ---
+        function switchTab(tabId) {
+            appState.currentTab = tabId;
+            
+            // Update Navigation UI styling (Desktop)
+            const tabs = ['train', 'history', 'exercises', 'coach'];
+            tabs.forEach(t => {
+                const sideBtn = document.getElementById(`side-tab-${t}`);
+                if (sideBtn) {
+                    if (t === tabId) {
+                        sideBtn.className = "flex items-center gap-4 px-4 py-3 rounded-xl bg-amber-500 font-bold text-slate-950 transition duration-200 w-full text-left shadow-lg shadow-amber-500/10";
+                    } else {
+                        sideBtn.className = "flex items-center gap-4 px-4 py-3 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-slate-100 transition duration-200 font-semibold w-full text-left";
+                    }
+                }
+
+                const mobileBtn = document.getElementById(`mobile-tab-${t}`);
+                if (mobileBtn) {
+                    if (t === tabId) {
+                        mobileBtn.className = "flex flex-col items-center justify-center py-1 text-xs font-bold transition w-16 text-amber-500";
+                    } else {
+                        mobileBtn.className = "flex flex-col items-center justify-center py-1 text-xs font-bold transition w-16 text-slate-400";
+                    }
+                }
+            });
+
+            renderCurrentTab();
+        }
+
+        function renderCurrentTab() {
+            const container = document.getElementById('content-container');
+            container.innerHTML = '';
+
+            if (appState.currentTab === 'train') {
+                renderTrainTab(container);
+            } else if (appState.currentTab === 'history') {
+                renderHistoryTab(container);
+            } else if (appState.currentTab === 'exercises') {
+                renderExercisesTab(container);
+            } else if (appState.currentTab === 'coach') {
+                renderCoachTab(container);
+            }
+        }
+
+        // --- TABS RENDERING FUNCTIONS ---
+
+        // 1. TRAINING TAB
+        function renderTrainTab(container) {
+            if (!appState.activeSession) {
+                // Empty state or show records
+                const prList = calculatePersonalRecords();
+                let prsHtml = '';
+                if (prList.length > 0) {
+                    prsHtml = `
+                        <div class="mt-8 bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                            <h4 class="text-lg font-bold text-slate-100 mb-4 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-amber-500">military_tech</span>
+                                Récords Personales (PR)
+                            </h4>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                ${prList.map(pr => `
+                                    <div class="bg-slate-950 border border-slate-800/80 p-4 rounded-xl flex items-center justify-between">
+                                        <div>
+                                            <span class="block text-xs text-slate-500 font-bold uppercase tracking-wider">${pr.muscleGroup}</span>
+                                            <span class="font-bold text-slate-200 text-sm sm:text-base">${pr.exerciseName}</span>
+                                        </div>
+                                        <div class="text-right">
+                                            <span class="block font-black text-amber-500 text-lg sm:text-xl leading-none">${pr.maxWeight} kg</span>
+                                            <span class="text-[10px] text-slate-400">1RM Estimado: ${Math.round(pr.oneRepMax)} kg</span>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                container.innerHTML = `
+                    <div class="max-w-4xl mx-auto">
+                        <div class="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 rounded-3xl p-8 text-center shadow-xl flex flex-col items-center justify-center min-h-[320px]">
+                            <div class="w-20 h-20 bg-amber-500/10 rounded-full flex items-center justify-center mb-6">
+                                <span class="material-symbols-outlined text-amber-500 text-4xl">fitness_center</span>
+                            </div>
+                            <h2 class="text-2xl sm:text-3xl font-black text-slate-100 mb-2">Comienza un Entrenamiento</h2>
+                            <p class="text-slate-400 text-sm max-w-md mb-8">Registra tus cargas, repeticiones, y tiempo de descanso para progresar científicamente hacia tus objetivos de hipertrofia y fuerza.</p>
+                            <button onclick="openModal('start-workout-modal')" class="px-8 py-4 bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-black tracking-wide rounded-2xl shadow-xl shadow-amber-500/10 transition flex items-center gap-3">
+                                <span class="material-symbols-outlined font-bold text-2xl">add</span>
+                                EMPEZAR ENTRENAMIENTO
+                            </button>
+                        </div>
+                        ${prsHtml}
+                    </div>
+                `;
+            } else {
+                // Active Workout screen
+                const session = appState.activeSession;
+                container.innerHTML = `
+                    <div class="max-w-4xl mx-auto flex flex-col gap-6">
+                        <!-- Header with Timer and Control -->
+                        <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div>
+                                <span class="text-xs font-bold text-amber-500 uppercase tracking-widest block mb-0.5">Entrenamiento Activo</span>
+                                <h3 class="text-xl font-bold text-slate-100">${session.name}</h3>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="bg-slate-950 border border-slate-800 px-5 py-2 rounded-xl flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-amber-500 text-xl animate-pulse">timer</span>
+                                    <span class="font-mono text-xl font-black text-slate-200" id="live-timer">${formatTime(session.elapsedSeconds)}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="discardActiveWorkout()" class="px-3 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 transition" title="Descartar entrenamiento">
+                                        <span class="material-symbols-outlined text-lg block leading-none">delete</span>
+                                    </button>
+                                    <button onclick="openModal('finish-workout-modal')" class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 font-bold text-slate-950 transition flex items-center gap-1.5 text-sm">
+                                        <span class="material-symbols-outlined text-sm font-bold">check</span> Finalizar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Exercises List -->
+                        <div class="space-y-4" id="active-exercises-container">
+                            ${session.exercises.length === 0 ? `
+                                <div class="border-2 border-dashed border-slate-800 rounded-2xl p-10 text-center flex flex-col items-center">
+                                    <span class="material-symbols-outlined text-slate-600 text-4xl mb-3">add_circle</span>
+                                    <h4 class="font-bold text-slate-300 mb-1">Añade tu primer ejercicio</h4>
+                                    <p class="text-xs text-slate-500 mb-6">Presiona el botón de abajo para buscar y agregar ejercicios a tu rutina de hoy.</p>
+                                    <button onclick="openActiveExerciseSelector()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-amber-500 text-xs font-bold rounded-xl transition">Buscar Ejercicio</button>
+                                </div>
+                            ` : session.exercises.map((ex, exIdx) => `
+                                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-md">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div>
+                                            <span class="text-[10px] font-black uppercase text-amber-500 tracking-wider">${ex.muscleGroup}</span>
+                                            <h4 class="font-bold text-base sm:text-lg text-slate-100">${ex.name}</h4>
+                                        </div>
+                                        <button onclick="removeExerciseFromActive(${exIdx})" class="text-slate-500 hover:text-red-400 transition">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </div>
+
+                                    <!-- Sets table -->
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-left border-collapse min-w-[280px]">
+                                            <thead>
+                                                <tr class="text-[11px] font-bold text-slate-500 border-b border-slate-800 uppercase tracking-wider">
+                                                    <th class="py-2 w-12 text-center">Set</th>
+                                                    <th class="py-2 w-28 text-center">Peso (kg)</th>
+                                                    <th class="py-2 w-24 text-center">Reps</th>
+                                                    <th class="py-2 w-16 text-center">Calent.</th>
+                                                    <th class="py-2 w-12 text-center">Ok</th>
+                                                    <th class="py-2 w-10"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                ${ex.sets.map((set, setIdx) => `
+                                                    <tr class="border-b border-slate-800/50 ${set.isCompleted ? 'bg-amber-500/5' : ''} transition">
+                                                        <td class="py-2 text-center font-bold text-sm text-slate-400">${set.setNumber}</td>
+                                                        <td class="py-2 text-center px-1">
+                                                            <input type="number" step="any" placeholder="0" value="${set.weight || ''}" oninput="updateSetField(${exIdx}, ${setIdx}, 'weight', this.value)" class="w-20 bg-slate-850 border ${set.isCompleted ? 'border-amber-500/20' : 'border-slate-700'} focus:border-amber-500 rounded-lg py-1.5 text-center text-slate-200 text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                                        </td>
+                                                        <td class="py-2 text-center px-1">
+                                                            <input type="number" placeholder="0" value="${set.reps || ''}" oninput="updateSetField(${exIdx}, ${setIdx}, 'reps', this.value)" class="w-16 bg-slate-850 border ${set.isCompleted ? 'border-amber-500/20' : 'border-slate-700'} focus:border-amber-500 rounded-lg py-1.5 text-center text-slate-200 text-sm focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                                                        </td>
+                                                        <td class="py-2 text-center">
+                                                            <input type="checkbox" ${set.isWarmup ? 'checked' : ''} onchange="updateSetField(${exIdx}, ${setIdx}, 'isWarmup', this.checked)" class="w-4 h-4 accent-amber-500 cursor-pointer">
+                                                        </td>
+                                                        <td class="py-2 text-center">
+                                                            <button onclick="toggleSetCompleted(${exIdx}, ${setIdx})" class="w-7 h-7 flex items-center justify-center rounded-lg border ${set.isCompleted ? 'bg-amber-500 border-amber-500 text-slate-950' : 'border-slate-600 text-slate-400 hover:border-amber-500'} transition duration-200">
+                                                                <span class="material-symbols-outlined text-sm font-bold">${set.isCompleted ? 'check' : 'check'}</span>
+                                                            </button>
+                                                        </td>
+                                                        <td class="py-2 text-center">
+                                                            <button onclick="removeSetFromExercise(${exIdx}, ${setIdx})" class="text-slate-600 hover:text-red-400 transition">
+                                                                <span class="material-symbols-outlined text-sm">close</span>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <button onclick="addSetToExercise(${exIdx})" class="mt-4 w-full py-2 border border-dashed border-slate-700 hover:border-amber-500/40 text-slate-400 hover:text-amber-500 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-1">
+                                        <span class="material-symbols-outlined text-xs">add</span> Añadir Set
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Add Exercise Button -->
+                        <button onclick="openActiveExerciseSelector()" class="w-full py-4 bg-slate-900 hover:bg-slate-850 border border-slate-800 hover:border-amber-500/40 text-amber-500 font-bold text-sm rounded-2xl shadow-md transition flex items-center justify-center gap-2">
+                            <span class="material-symbols-outlined">add_circle</span>
+                            AÑADIR EJERCICIO
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // 2. HISTORY TAB
+        function renderHistoryTab(container) {
+            if (appState.sessions.length === 0) {
+                container.innerHTML = `
+                    <div class="max-w-4xl mx-auto text-center py-16 flex flex-col items-center">
+                        <span class="material-symbols-outlined text-slate-700 text-5xl mb-4">history</span>
+                        <h3 class="text-xl font-bold text-slate-300 mb-1">Historial Vacío</h3>
+                        <p class="text-sm text-slate-500 max-w-sm mb-6">Aún no has guardado ningún entrenamiento. Tus sesiones completadas se registrarán aquí automáticamente.</p>
+                        <button onclick="switchTab('train')" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl transition text-sm">Entrenar Ahora</button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Render Charts & Analytics
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto flex flex-col gap-8">
+                    <!-- Volume Progress Chart Card -->
+                    <div class="bg-slate-900 border border-slate-800 p-6 rounded-3xl shadow-xl">
+                        <h4 class="text-base font-bold text-slate-200 mb-4 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-500">show_chart</span>
+                            Progreso de Carga y Volumen Total (kg)
+                        </h4>
+                        <div class="w-full h-64 relative">
+                            <canvas id="volumeChartCanvas"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Historic List Header -->
+                    <div>
+                        <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-amber-500">calendar_month</span>
+                            Entrenamientos Registrados (${appState.sessions.length})
+                        </h3>
+                    </div>
+
+                    <!-- Historic Cards -->
+                    <div class="space-y-4">
+                        ${appState.sessions.map((session, sIdx) => {
+                            const totalVolume = calculateSessionVolume(session);
+                            return `
+                                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 sm:p-6 shadow-md hover:border-slate-700/60 transition">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <div>
+                                            <span class="text-xs text-slate-500 font-semibold">${formatFullDate(session.endTime)}</span>
+                                            <h4 class="text-lg font-bold text-slate-100 mt-0.5">${session.name}</h4>
+                                        </div>
+                                        <button onclick="deleteSession(${sIdx})" class="text-slate-600 hover:text-red-400 transition" title="Eliminar del historial">
+                                            <span class="material-symbols-outlined text-lg">delete</span>
+                                        </button>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 bg-slate-950 border border-slate-800/80 p-3.5 rounded-xl mb-4 text-xs sm:text-sm">
+                                        <div class="flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-slate-500 text-lg">timer</span>
+                                            <div>
+                                                <span class="block text-[10px] text-slate-500 uppercase font-black">Duración</span>
+                                                <span class="font-bold text-slate-200">${formatTime(session.elapsedSeconds)}</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-slate-500 text-lg">monitoring</span>
+                                            <div>
+                                                <span class="block text-[10px] text-slate-500 uppercase font-black">Volumen</span>
+                                                <span class="font-bold text-slate-200">${totalVolume.toLocaleString()} kg</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2 col-span-2 sm:col-span-1 border-t sm:border-t-0 sm:border-l border-slate-800 pt-2 sm:pt-0 sm:pl-3">
+                                            <span class="material-symbols-outlined text-slate-500 text-lg">tag</span>
+                                            <div>
+                                                <span class="block text-[10px] text-slate-500 uppercase font-black">Ejercicios</span>
+                                                <span class="font-bold text-slate-200">${session.exercises.length}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    ${session.notes ? `
+                                        <div class="bg-amber-500/5 border-l-2 border-amber-500/30 p-3 rounded-r-xl mb-4 text-xs italic text-slate-400">
+                                            "${session.notes}"
+                                        </div>
+                                    ` : ''}
+
+                                    <!-- Short list of logged exercises -->
+                                    <div class="border-t border-slate-800/50 pt-4 space-y-3">
+                                        ${session.exercises.map(ex => `
+                                            <div class="flex flex-col sm:flex-row sm:justify-between text-xs sm:text-sm gap-1">
+                                                <span class="font-bold text-slate-300 w-1/3">${ex.name}</span>
+                                                <div class="flex-grow flex flex-wrap gap-1.5 text-slate-400">
+                                                    ${ex.sets.map(set => `
+                                                        <span class="px-2 py-0.5 bg-slate-850 rounded-md border border-slate-800/80 text-[11px] font-mono whitespace-nowrap">
+                                                            ${set.isWarmup ? '<span class="text-amber-500">W:</span>' : ''}${set.weight}kg x ${set.reps}
+                                                        </span>
+                                                    `).join('')}
+                                                </div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+
+            // Initialize progress volume chart
+            setTimeout(initializeVolumeChart, 50);
+        }
+
+        function calculateSessionVolume(session) {
+            let volume = 0;
+            session.exercises.forEach(ex => {
+                ex.sets.forEach(set => {
+                    if (set.isCompleted) {
+                        volume += (parseFloat(set.weight) || 0) * (parseInt(set.reps) || 0);
+                    }
+                });
+            });
+            return volume;
+        }
+
+        function initializeVolumeChart() {
+            const ctx = document.getElementById('volumeChartCanvas');
+            if (!ctx) return;
+
+            // Sort history ascending chronologically for plotting
+            const sortedSessions = [...appState.sessions].reverse().slice(-10); // Take last 10 entries
+            const labels = sortedSessions.map(s => formatShortDate(s.endTime));
+            const data = sortedSessions.map(s => calculateSessionVolume(s));
+
+            if (volumeChart) volumeChart.destroy();
+
+            volumeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Volumen Total (kg)',
+                        data: data,
+                        borderColor: '#f59e0b',
+                        borderWidth: 2,
+                        backgroundColor: 'rgba(245, 158, 11, 0.05)',
+                        fill: true,
+                        tension: 0.35,
+                        pointBackgroundColor: '#f59e0b',
+                        pointHoverRadius: 6,
+                        pointRadius: 4,
+                        pointBorderColor: '#0b1329'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#0f172a',
+                            borderColor: '#1e293b',
+                            borderWidth: 1,
+                            bodyFont: { size: 12, weight: 'bold' },
+                            titleFont: { size: 10, weight: 'normal' },
+                            displayColors: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            grid: { color: 'rgba(51, 65, 85, 0.1)' },
+                            ticks: { color: '#64748b', font: { size: 10 } }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#64748b', font: { size: 10 } }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 3. EXERCISES TAB
+        function renderExercisesTab(container) {
+            const muscles = ['Todos', 'Pecho', 'Espalda', 'Piernas', 'Hombros', 'Brazos', 'Core'];
+            
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto flex flex-col gap-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-slate-100 flex items-center gap-2">
+                                <span class="material-symbols-outlined text-amber-500">format_list_bulleted</span>
+                                Biblioteca de Ejercicios
+                            </h3>
+                            <p class="text-xs text-slate-400">Filtra la lista o crea tus propios ejercicios personalizados.</p>
+                        </div>
+                        <button onclick="openModal('custom-exercise-modal')" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 font-bold text-slate-950 rounded-xl shadow-md transition flex items-center gap-1.5 text-xs">
+                            <span class="material-symbols-outlined font-bold text-base">add</span> Nuevo Ejercicio
+                        </button>
+                    </div>
+
+                    <!-- Search and filters -->
+                    <div class="flex flex-col gap-3">
+                        <input type="text" id="exercise-search" oninput="filterExercisesLibrary()" placeholder="Buscar ejercicio por nombre o músculo..." class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 text-sm">
+                        <div class="flex gap-1 overflow-x-auto pb-1" id="exercise-muscle-filters">
+                            ${muscles.map(m => `
+                                <button onclick="selectMuscleFilter('${m}')" class="px-4 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap ${appState.selectedMuscleFilter === m ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/10' : 'bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-100'}">
+                                    ${m}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Exercise Cards List -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="exercise-library-list">
+                        <!-- Filtered exercises rendered here -->
+                    </div>
+                </div>
+            `;
+
+            renderFilteredExercisesList();
+        }
+
+        function selectMuscleFilter(muscle) {
+            appState.selectedMuscleFilter = muscle;
+            // Re-render only filter elements and list to keep inputs intact
+            const filterContainer = document.getElementById('exercise-muscle-filters');
+            if (filterContainer) {
+                const muscles = ['Todos', 'Pecho', 'Espalda', 'Piernas', 'Hombros', 'Brazos', 'Core'];
+                filterContainer.innerHTML = muscles.map(m => `
+                    <button onclick="selectMuscleFilter('${m}')" class="px-4 py-1.5 rounded-full text-xs font-bold transition whitespace-nowrap ${appState.selectedMuscleFilter === m ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/10' : 'bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-100'}">
+                        ${m}
+                    </button>
+                `).join('');
+            }
+            renderFilteredExercisesList();
+        }
+
+        function renderFilteredExercisesList() {
+            const listContainer = document.getElementById('exercise-library-list');
+            if (!listContainer) return;
+
+            const query = document.getElementById('exercise-search')?.value.toLowerCase() || '';
+            const filter = appState.selectedMuscleFilter;
+
+            const filtered = appState.exercises.filter(ex => {
+                const matchesQuery = ex.name.toLowerCase().includes(query) || ex.description.toLowerCase().includes(query) || ex.muscleGroup.toLowerCase().includes(query);
+                const matchesFilter = filter === 'Todos' || ex.muscleGroup === filter;
+                return matchesQuery && matchesFilter;
+            });
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="col-span-2 text-center py-10 bg-slate-900/50 border border-slate-800/80 rounded-2xl p-6">
+                        <span class="material-symbols-outlined text-slate-600 text-3xl mb-1">sentiment_dissatisfied</span>
+                        <h5 class="font-bold text-slate-400">Sin ejercicios encontrados</h5>
+                        <p class="text-xs text-slate-500">Prueba ajustando los términos de búsqueda o filtros.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            listContainer.innerHTML = filtered.map(ex => `
+                <div class="bg-slate-900 border border-slate-800 hover:border-slate-700 p-5 rounded-2xl shadow-sm transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="px-2.5 py-0.5 bg-amber-500/10 border border-amber-500/25 rounded-full text-[10px] font-bold text-amber-500 uppercase tracking-wide">${ex.muscleGroup}</span>
+                            ${ex.isCustom ? `
+                                <div class="flex gap-2">
+                                    <span class="text-[9px] text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded uppercase font-semibold">Custom</span>
+                                    <button onclick="deleteCustomExercise('${ex.id}')" class="text-slate-600 hover:text-red-400 transition" title="Borrar ejercicio">
+                                        <span class="material-symbols-outlined text-sm">close</span>
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <h4 class="font-bold text-slate-100 text-base mb-1.5">${ex.name}</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">${ex.description}</p>
+                    </div>
+                    ${appState.activeSession ? `
+                        <button onclick="addExerciseToActive('${ex.id}')" class="w-full py-2 bg-slate-800 hover:bg-slate-750 font-bold text-xs text-slate-200 hover:text-amber-500 rounded-xl transition flex items-center justify-center gap-1">
+                            <span class="material-symbols-outlined text-sm">add</span> Añadir a Rutina
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function filterExercisesLibrary() {
+            renderFilteredExercisesList();
+        }
+
+        // 4. AI COACH TAB
+        function renderCoachTab(container) {
+            container.innerHTML = `
+                <div class="max-w-3xl mx-auto flex flex-col h-[75vh] md:h-[82vh] bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl relative">
+                    <!-- Tab Header -->
+                    <div class="px-6 py-4 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between sticky top-0 z-10">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-amber-500/15 rounded-xl border border-amber-500/20 flex items-center justify-center text-amber-500">
+                                <span class="material-symbols-outlined text-2xl font-bold">smart_toy</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-100 text-sm">Coach Deportivo IA</h4>
+                                <span class="text-[10px] text-emerald-500 flex items-center gap-1 font-semibold">
+                                    <span class="inline-block w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></span> Activo de Fuerza
+                                </span>
+                            </div>
+                        </div>
+                        <!-- Key warning fallback indicators -->
+                        ${(!window.AndroidBridge && !appState.geminiApiKey) ? `
+                            <span onclick="openSettingsModal()" class="cursor-pointer text-[10px] font-bold text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/35 px-2.5 py-1 rounded-full flex items-center gap-1 transition">
+                                <span class="material-symbols-outlined text-xs">key_off</span> Usando Coach Local (Pulsa para Clave)
+                            </span>
+                        ` : ''}
+                    </div>
+
+                    <!-- Chat Message Area -->
+                    <div id="chat-messages-container" class="flex-grow p-6 overflow-y-auto space-y-4 flex flex-col min-h-0 bg-slate-950/20">
+                        ${appState.chatMessages.map(msg => `
+                            <div class="flex flex-col ${msg.isUser ? 'items-end' : 'items-start'} max-w-[85%] ${msg.isUser ? 'self-end' : 'self-start'}">
+                                <div class="px-4 py-3 rounded-2xl ${msg.isUser ? 'bg-amber-500 text-slate-950 rounded-tr-none font-medium' : 'bg-slate-800/80 border border-slate-800 text-slate-200 rounded-tl-none'} text-sm leading-relaxed whitespace-pre-line shadow-sm">
+                                    ${msg.text}
+                                </div>
+                                <span class="text-[9px] text-slate-500 mt-1 px-1 font-semibold">${formatMsgTime(msg.timestamp)}</span>
+                            </div>
+                        `).join('')}
+                        <div id="ai-typing-indicator" class="hidden flex flex-col items-start max-w-[85%] self-start animate-pulse">
+                            <div class="px-4 py-3.5 rounded-2xl bg-slate-800/50 border border-slate-800 rounded-tl-none flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce"></span>
+                                <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.2s]"></span>
+                                <span class="w-1.5 h-1.5 bg-slate-400 rounded-full animate-bounce [animation-delay:0.4s]"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Form Input Area -->
+                    <div class="p-4 border-t border-slate-800 bg-slate-900">
+                        <form onsubmit="submitChatMsg(event)" class="flex gap-2">
+                            <input type="text" id="chat-input" placeholder="Pregunta sobre rutinas, hipertrofia, récords..." class="flex-grow bg-slate-950 border border-slate-800 rounded-xl px-4 py-3.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 text-sm">
+                            <button type="submit" class="w-12 h-12 flex items-center justify-center rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 shadow-md shadow-amber-500/10 transition shrink-0">
+                                <span class="material-symbols-outlined font-bold">send</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            // Scroll chat to bottom on load
+            scrollToChatBottom();
+        }
+
+        function scrollToChatBottom() {
+            const container = document.getElementById('chat-messages-container');
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+
+
+        // --- WORKOUT TRACKING LOGIC ---
+
+        function openActiveExerciseSelector() {
+            const muscles = ['Todos', 'Pecho', 'Espalda', 'Piernas', 'Hombros', 'Brazos', 'Core'];
+            const filterContainer = document.getElementById('exercise-muscle-filters-active');
+            if (filterContainer) {
+                filterContainer.innerHTML = muscles.map(m => `
+                    <button onclick="selectActiveMuscleFilter('${m}')" class="px-3 py-1 rounded-full text-[10px] font-bold transition whitespace-nowrap ${appState.selectedActiveMuscleFilter === m ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400 hover:text-slate-100'}">
+                        ${m}
+                    </button>
+                `).join('');
+            }
+            renderActiveModalExercises();
+            openModal('add-exercise-modal');
+        }
+
+        function selectActiveMuscleFilter(muscle) {
+            appState.selectedActiveMuscleFilter = muscle;
+            const muscles = ['Todos', 'Pecho', 'Espalda', 'Piernas', 'Hombros', 'Brazos', 'Core'];
+            const filterContainer = document.getElementById('exercise-muscle-filters-active');
+            if (filterContainer) {
+                filterContainer.innerHTML = muscles.map(m => `
+                    <button onclick="selectActiveMuscleFilter('${m}')" class="px-3 py-1 rounded-full text-[10px] font-bold transition whitespace-nowrap ${appState.selectedActiveMuscleFilter === m ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400 hover:text-slate-100'}">
+                        ${m}
+                    </button>
+                `).join('');
+            }
+            renderActiveModalExercises();
+        }
+
+        function renderActiveModalExercises() {
+            const listContainer = document.getElementById('active-modal-exercise-list');
+            if (!listContainer) return;
+
+            const query = document.getElementById('exercise-search-active')?.value.toLowerCase() || '';
+            const filter = appState.selectedActiveMuscleFilter;
+
+            const filtered = appState.exercises.filter(ex => {
+                const matchesQuery = ex.name.toLowerCase().includes(query) || ex.description.toLowerCase().includes(query);
+                const matchesFilter = filter === 'Todos' || ex.muscleGroup === filter;
+                return matchesQuery && matchesFilter;
+            });
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-8">
+                        <span class="material-symbols-outlined text-slate-600 text-3xl mb-1">sentiment_dissatisfied</span>
+                        <h5 class="font-bold text-slate-400 text-sm">Sin resultados</h5>
+                    </div>
+                `;
+                return;
+            }
+
+            listContainer.innerHTML = filtered.map(ex => {
+                const isAlreadyAdded = appState.activeSession?.exercises.some(e => e.id === ex.id);
+                return `
+                    <div class="bg-slate-850 border border-slate-800 p-4 rounded-xl flex justify-between items-center gap-4 hover:border-slate-700 transition">
+                        <div>
+                            <span class="text-[9px] font-bold text-amber-500 uppercase">${ex.muscleGroup}</span>
+                            <h4 class="font-bold text-slate-100 text-sm leading-tight">${ex.name}</h4>
+                            <p class="text-[11px] text-slate-400 line-clamp-1 mt-0.5">${ex.description}</p>
+                        </div>
+                        <button onclick="${isAlreadyAdded ? 'window.closeModal(\'add-exercise-modal\')' : `addExerciseToActive('${ex.id}')`}" class="shrink-0 px-3 py-1.5 ${isAlreadyAdded ? 'bg-slate-800 text-slate-500 cursor-not-allowed text-xs font-semibold' : 'bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold'} rounded-lg transition whitespace-nowrap">
+                            ${isAlreadyAdded ? 'Ya añadido' : 'Añadir'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function filterActiveExercisesModal() {
+            renderActiveModalExercises();
+        }
+
+        function startWorkout() {
+            const nameInput = document.getElementById('workout-name-input');
+            const name = nameInput.value.trim().ifEmpty ? "Entrenamiento Libre" : nameInput.value.trim();
+            
+            appState.activeSession = {
+                name: name || "Entrenamiento Libre",
+                startTime: Date.now(),
+                elapsedSeconds: 0,
+                exercises: []
+            };
+
+            nameInput.value = '';
+            closeModal('start-workout-modal');
+            saveStateToLocalStorage();
+            resumeWorkoutTimer();
+            switchTab('train');
+        }
+
+        String.prototype.ifEmpty = function(val) {
+            return this.length === 0;
+        }
+
+        function resumeWorkoutTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (appState.activeSession) {
+                    appState.activeSession.elapsedSeconds++;
+                    const timerText = document.getElementById('live-timer');
+                    if (timerText) {
+                        timerText.textContent = formatTime(appState.activeSession.elapsedSeconds);
+                    }
+                    // Debounce saving elapsed time to storage every 10 seconds to reduce wear
+                    if (appState.activeSession.elapsedSeconds % 5 === 0) {
+                        saveStateToLocalStorage();
+                    }
+                }
+            }, 1000);
+        }
+
+        function discardActiveWorkout() {
+            if (confirm('¿Estás seguro de que quieres descartar tu sesión de entrenamiento actual? Todo el progreso de hoy se perderá.')) {
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = null;
+                appState.activeSession = null;
+                saveStateToLocalStorage();
+                renderCurrentTab();
+            }
+        }
+
+        function saveActiveWorkout() {
+            const notes = document.getElementById('workout-notes-input').value.trim();
+            const session = appState.activeSession;
+            
+            // Filter completed/checked sets
+            const finalExercises = [];
+            session.exercises.forEach(ex => {
+                const completedSets = ex.sets.filter(s => s.isCompleted);
+                if (completedSets.length > 0) {
+                    finalExercises.push({
+                        id: ex.id,
+                        name: ex.name,
+                        muscleGroup: ex.muscleGroup,
+                        sets: completedSets.map((s, idx) => ({
+                            setNumber: idx + 1,
+                            weight: parseFloat(s.weight) || 0,
+                            reps: parseInt(s.reps) || 0,
+                            isWarmup: s.isWarmup,
+                            isCompleted: true
+                        }))
+                    });
+                }
+            });
+
+            if (finalExercises.length === 0) {
+                alert('No has completado ningún set de ejercicio hoy. Para guardar un entrenamiento, marca al menos un set con el botón "Ok".');
+                closeModal('finish-workout-modal');
+                return;
+            }
+
+            // Save completed workout in history
+            const completedSession = {
+                name: session.name,
+                startTime: session.startTime,
+                endTime: Date.now(),
+                elapsedSeconds: session.elapsedSeconds,
+                notes: notes,
+                exercises: finalExercises
+            };
+
+            appState.sessions.unshift(completedSession); // Add as first item (newest)
+            
+            // Clean active workout state
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+            appState.activeSession = null;
+
+            document.getElementById('workout-notes-input').value = '';
+            
+            saveStateToLocalStorage();
+            closeModal('finish-workout-modal');
+            switchTab('history');
+        }
+
+        function addExerciseToActive(exId) {
+            const ex = appState.exercises.find(e => e.id === exId);
+            if (ex && appState.activeSession) {
+                // Initialize exercise with 1 default set
+                appState.activeSession.exercises.push({
+                    id: ex.id,
+                    name: ex.name,
+                    muscleGroup: ex.muscleGroup,
+                    sets: [{ setNumber: 1, weight: '', reps: '', isCompleted: false, isWarmup: false }]
+                });
+                saveStateToLocalStorage();
+                closeModal('add-exercise-modal');
+                renderCurrentTab();
+            }
+        }
+
+        function removeExerciseFromActive(exIdx) {
+            if (appState.activeSession) {
+                appState.activeSession.exercises.splice(exIdx, 1);
+                saveStateToLocalStorage();
+                renderCurrentTab();
+            }
+        }
+
+        function addSetToExercise(exIdx) {
+            if (appState.activeSession) {
+                const ex = appState.activeSession.exercises[exIdx];
+                const prevSet = ex.sets[ex.sets.length - 1];
+                ex.sets.push({
+                    setNumber: ex.sets.length + 1,
+                    weight: prevSet ? prevSet.weight : '',
+                    reps: prevSet ? prevSet.reps : '',
+                    isCompleted: false,
+                    isWarmup: false
+                });
+                saveStateToLocalStorage();
+                renderCurrentTab();
+            }
+        }
+
+        function removeSetFromExercise(exIdx, setIdx) {
+            if (appState.activeSession) {
+                const ex = appState.activeSession.exercises[exIdx];
+                if (ex.sets.length > 1) {
+                    ex.sets.splice(setIdx, 1);
+                    // Re-number sets
+                    ex.sets.forEach((set, i) => set.setNumber = i + 1);
+                    saveStateToLocalStorage();
+                    renderCurrentTab();
+                }
+            }
+        }
+
+        function updateSetField(exIdx, setIdx, field, val) {
+            if (appState.activeSession) {
+                const set = appState.activeSession.exercises[exIdx].sets[setIdx];
+                set[field] = val;
+                // Debounce saving draft to localStorage
+                saveStateToLocalStorage();
+            }
+        }
+
+        function toggleSetCompleted(exIdx, setIdx) {
+            if (appState.activeSession) {
+                const set = appState.activeSession.exercises[exIdx].sets[setIdx];
+                set.isCompleted = !set.isCompleted;
+                saveStateToLocalStorage();
+                renderCurrentTab();
+            }
+        }
+
+        function deleteSession(idx) {
+            if (confirm('¿Estás seguro de que deseas eliminar este entrenamiento de tu historial permanentemente?')) {
+                appState.sessions.splice(idx, 1);
+                saveStateToLocalStorage();
+                renderCurrentTab();
+            }
+        }
+
+        // --- EXERCISE CREATION ---
+
+        function createCustomExercise() {
+            const name = document.getElementById('custom-ex-name').value.trim();
+            const muscle = document.getElementById('custom-ex-muscle').value;
+            const desc = document.getElementById('custom-ex-desc').value.trim();
+
+            if (!name) {
+                alert('Por favor introduce el nombre del ejercicio.');
+                return;
+            }
+
+            const cleanId = 'custom_' + name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+            const newExercise = {
+                id: cleanId,
+                name: name,
+                muscleGroup: muscle,
+                description: desc || `Ejercicio personalizado para el grupo muscular de ${muscle}.`,
+                isCustom: true
+            };
+
+            appState.exercises.unshift(newExercise);
+            saveStateToLocalStorage();
+            
+            document.getElementById('custom-ex-name').value = '';
+            document.getElementById('custom-ex-desc').value = '';
+
+            closeModal('custom-exercise-modal');
+            renderCurrentTab();
+        }
+
+        function deleteCustomExercise(exId) {
+            if (confirm('¿Deseas eliminar este ejercicio personalizado de tu biblioteca?')) {
+                appState.exercises = appState.exercises.filter(e => e.id !== exId);
+                saveStateToLocalStorage();
+                renderCurrentTab();
+            }
+        }
+
+
+        // --- STATS AND PERSONAL RECORDS (PR) ---
+
+        function calculatePersonalRecords() {
+            // Evaluates all completed exercises inside sessions history
+            const recordsMap = {}; // { exerciseId: { weight: 0, reps: 0, 1RM: 0, timestamp: 0 } }
+            
+            appState.sessions.forEach(session => {
+                session.exercises.forEach(ex => {
+                    ex.sets.forEach(set => {
+                        const w = parseFloat(set.weight) || 0;
+                        const r = parseInt(set.reps) || 0;
+                        if (w > 0 && r > 0) {
+                            // Epley 1RM formula: 1RM = w * (1 + r/30)
+                            const oneRepMax = r === 1 ? w : w * (1 + r / 30);
+                            
+                            if (!recordsMap[ex.id] || w > recordsMap[ex.id].maxWeight) {
+                                recordsMap[ex.id] = {
+                                    exerciseName: ex.name,
+                                    muscleGroup: ex.muscleGroup,
+                                    maxWeight: w,
+                                    reps: r,
+                                    oneRepMax: oneRepMax
+                                };
+                            }
+                        }
+                    });
+                });
+            });
+
+            return Object.values(recordsMap);
+        }
+
+
+        // --- AI COACH CONVERSATION LOGIC ---
+
+        async function submitChatMsg(event) {
+            event.preventDefault();
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            // Add user message
+            appState.chatMessages.push({ text: text, isUser: true, timestamp: Date.now() });
+            input.value = '';
+            saveStateToLocalStorage();
+            renderCurrentTab(); // Updates chat rendering with the user message
+
+            // Show typing indicator
+            const indicator = document.getElementById('ai-typing-indicator');
+            if (indicator) indicator.classList.remove('hidden');
+            scrollToChatBottom();
+
+            // AI Answer Route selection
+            if (window.AndroidBridge) {
+                // Inside Android App: Delegate API call to secure backend Kotlin view model
+                window.AndroidBridge.askGemini(text);
+            } else if (appState.geminiApiKey) {
+                // Standalone PC/Mobile browser with an API Key
+                try {
+                    const ans = await callGeminiApiDirectly(text);
+                    receiveCoachResponse(ans);
+                } catch (err) {
+                    receiveCoachResponse(`Lo siento, hubo un problema al conectar con Gemini API: ${err.message}. Recuerda que puedes desactivar la clave en ajustes para usar mi motor local offline.`);
+                }
+            } else {
+                // Standalone PC/Mobile browser offline rules-based fallback engine
+                setTimeout(() => {
+                    const ans = getSmartOfflineCoachResponse(text);
+                    receiveCoachResponse(ans);
+                }, 1200);
+            }
+        }
+
+        // Bridge callbacks from Android JVM Kotlin
+        window.onChatMessagesUpdated = function(jsonStr) {
+            try {
+                const messages = JSON.parse(jsonStr);
+                // Retain timestamp and map back to state
+                appState.chatMessages = messages.map(m => ({
+                    text: m.text,
+                    isUser: m.isUser,
+                    timestamp: m.timestamp || Date.now()
+                }));
+                saveStateToLocalStorage();
+                renderCurrentTab();
+            } catch (e) {
+                console.error("Bridge parse failed", e);
+            }
+        };
+
+        window.onAiLoadingUpdated = function(isLoading) {
+            appState.isAiLoading = isLoading;
+            const indicator = document.getElementById('ai-typing-indicator');
+            if (indicator) {
+                if (isLoading) indicator.classList.remove('hidden');
+                else indicator.classList.add('hidden');
+                scrollToChatBottom();
+            }
+        };
+
+        function receiveCoachResponse(text) {
+            appState.chatMessages.push({ text: text, isUser: false, timestamp: Date.now() });
+            saveStateToLocalStorage();
+            
+            // Hide indicator and update chat rendering
+            const indicator = document.getElementById('ai-typing-indicator');
+            if (indicator) indicator.classList.add('hidden');
+            
+            renderCurrentTab();
+        }
+
+        async function callGeminiApiDirectly(prompt) {
+            const historyText = getAthletesHistoryString();
+            const systemInstruction = `Eres un Coach de Musculación y Rendimiento Deportivo experto. Te llamas 'Coach IA'. 
+Tus respuestas deben ser motivadoras, científicamente rigurosas (basadas en ciencia del deporte) pero accesibles y prácticas.
+Siempre habla en español. Responde de forma estructurada, usando negritas, listas y saltos de línea para que sea fácil de leer en un celular.
+
+Contexto del atleta actual:
+${historyText}`;
+
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${appState.geminiApiKey}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    systemInstruction: { parts: [{ text: systemInstruction }] },
+                    generationConfig: { temperature: 0.7 }
+                })
+            });
+
+            if (!response.ok) {
+                const errJson = await response.json().catch(() => ({}));
+                throw new Error(errJson.error?.message || `Error HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        function getAthletesHistoryString() {
+            const totalWorkouts = appState.sessions.length;
+            const records = calculatePersonalRecords();
+            let context = `El usuario ha completado ${totalWorkouts} sesiones de entrenamiento.`;
+            if (records.length > 0) {
+                context += " Sus récords personales actuales de levantamiento son: ";
+                records.slice(0, 5).forEach(pr => {
+                    context += `${pr.exerciseName} con un peso máximo de ${pr.maxWeight}kg (estimación de 1RM de ${Math.round(pr.oneRepMax)}kg); `;
+                });
+            } else {
+                context += " Aún no ha guardado entrenamientos con cargas registradas en su historial.";
+            }
+            return context;
+        }
+
+        function getSmartOfflineCoachResponse(queryText) {
+            const query = queryText.toLowerCase();
+            const prs = calculatePersonalRecords();
+            
+            if (query.includes('rutina') || query.includes('plan') || query.includes('entrenar')) {
+                return `Aquí tienes un **Plan de Entrenamiento Push/Pull/Legs (Empuje/Tirón/Pierna)** excelente que puedes hacer:
+
+🏋️‍♂️ **Día 1: Empuje (Pectorales, Deltoides, Tríceps)**
+• **Press de Banca**: 4 series x 6-8 repeticiones (fuerza base)
+• **Press Militar de Hombro**: 3 series x 8-10 repeticiones
+• **Aperturas / Cruces**: 3 series x 12 repeticiones (aislamiento)
+• **Fondos de Tríceps**: 3 series x 10 repeticiones
+
+🧗‍♂️ **Día 2: Tirón (Dorsales, Deltoides Posterior, Bíceps)**
+• **Peso Muerto**: 3 series x 5 repeticiones (potencia)
+• **Dominadas**: 4 series x máximas repeticiones técnicamente perfectas
+• **Remo en Polea o con Barra**: 3 series x 10 repeticiones
+• **Curl con Barra de Bíceps**: 3 series x 12 repeticiones
+
+🍗 **Día 3: Piernas y Core**
+• **Sentadilla con Barra**: 4 series x 6-8 repeticiones
+• **Prensa de Piernas**: 3 series x 10-12 repeticiones
+• **Peso Muerto Rumano**: 3 series x 10 repeticiones (femoral)
+• **Planchas Abdominales**: 3 series de 1 minuto
+
+*Consejo: Intenta subir de 1 a 2 kg en los ejercicios principales cada semana si completas todas las repeticiones recomendadas (Sobrecarga progresiva).*`;
+            }
+
+            if (query.includes('record') || query.includes('pr') || query.includes('maximo') || query.includes('récord')) {
+                if (prs.length > 0) {
+                    let text = `🏋️‍♂️ **Tus mejores récords personales registrados son:**\n\n`;
+                    prs.forEach(pr => {
+                        text += `• **${pr.exerciseName}**: Récord de carga de **${pr.maxWeight} kg**. Tu fuerza máxima estimada de 1RM es de **${Math.round(pr.oneRepMax)} kg**.\n`;
+                    });
+                    text += `\n¡Increíble rendimiento! Para seguir rompiendo récords, asegúrate de descansar de 2 a 3 minutos entre series pesadas y mantener un superávit de energía calórica.`;
+                    return text;
+                } else {
+                    return `Aún no has registrado cargas en tus entrenamientos completados en el **Historial**. En cuanto completes tu primer entrenamiento marcando sets completos con peso, calcularé tus récords y estimación de fuerza máxima 1RM aquí. ¡Empieza hoy tu rutina!`;
+                }
+            }
+
+            if (query.includes('proteina') || query.includes('comer') || query.includes('dieta') || query.includes('nutricion') || query.includes('comida')) {
+                return `La nutrición deportiva de alta calidad es el combustible principal para construir músculo y fuerza:
+
+🥚 **Requerimiento de Proteína:**
+Para favorecer la síntesis de proteínas y la hipertrofia, consume entre **1.6 y 2.2 gramos de proteína por cada kilogramo de peso corporal al día**. Fuentes clave: huevo, pollo, carnes magras, pescado, tofu y proteína de suero.
+
+🥩 **Balance Energético:**
+• **Hipertrofia:** Necesitas un superávit calórico controlado (+200 a +400 kcal sobre tu mantenimiento).
+• **Definición:** Un déficit calórico moderado (un 15% a 20% menos de calorías) preservando la ingesta de proteínas alta.
+
+💧 **Hidratación:**
+Bebe al menos 3 a 4 litros de agua diariamente, especialmente antes y durante las sesiones para asegurar una correcta contractilidad celular.`;
+            }
+
+            // Default fallback
+            return `¡Excelente pregunta sobre entrenamiento! Como tu **Coach IA**, te recomiendo mantener estos tres pilares fundamentales para tu progreso:
+
+1. 📈 **Sobrecarga Progresiva:** Debes esforzarte por incrementar gradualmente el estímulo de tus músculos (añadiendo peso, reps, o mejorando el rango de movimiento) a lo largo de las semanas.
+2. 🔄 **Recuperación Completa:** El músculo crece fuera del gimnasio. Asegúrate de dormir de 7 a 8 horas por noche y tomar de 1 a 2 días de descanso total por semana.
+3. 📝 **Registro Riguroso:** ¡Ya estás haciendo la parte más importante al registrar tus entrenamientos aquí! Revisa tus registros pasados en la pestaña de **Historial** antes de empezar cada entrenamiento para saber qué pesos debes vencer hoy.`;
+        }
+
+
+        // --- BACKUP & EXTRAS ---
+
+        function openSettingsModal() {
+            openModal('settings-modal');
+        }
+
+        function saveGeminiKey() {
+            const key = document.getElementById('gemini-api-key-input').value.trim();
+            localStorage.setItem('fy_gemini_key', key);
+            appState.geminiApiKey = key;
+            alert('Clave de Gemini API guardada con éxito.');
+            closeModal('settings-modal');
+            renderCurrentTab();
+        }
+
+        function exportBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({
+                fy_exercises: appState.exercises,
+                fy_sessions: appState.sessions,
+                fy_chat_messages: appState.chatMessages
+            }, null, 2));
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataStr);
+            dlAnchorElem.setAttribute("download", `fuerza_y_rendimiento_backup_${Date.now()}.json`);
+            dlAnchorElem.click();
+        }
+
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.fy_exercises) {
+                        appState.exercises = data.fy_exercises;
+                        localStorage.setItem('fy_exercises', JSON.stringify(appState.exercises));
+                    }
+                    if (data.fy_sessions) {
+                        appState.sessions = data.fy_sessions;
+                        localStorage.setItem('fy_sessions', JSON.stringify(appState.sessions));
+                    }
+                    if (data.fy_chat_messages) {
+                        appState.chatMessages = data.fy_chat_messages;
+                        localStorage.setItem('fy_chat_messages', JSON.stringify(appState.chatMessages));
+                    }
+                    alert('¡Copia de seguridad importada correctamente!');
+                    closeModal('settings-modal');
+                    switchTab('train');
+                } catch (err) {
+                    alert('Error al importar archivo. Asegúrate de seleccionar un archivo de copia válido JSON generado previamente.');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetAllAppData() {
+            if (confirm('¡ADVERTENCIA CRÍTICA!\n\nEsto borrará permanentemente todo tu historial, ejercicios de la biblioteca y configuración del navegador en este dispositivo. Esta acción es irreversible.\n\n¿Quieres proceder con la restauración de fábrica?')) {
+                localStorage.removeItem('fy_exercises');
+                localStorage.removeItem('fy_sessions');
+                localStorage.removeItem('fy_chat_messages');
+                localStorage.removeItem('fy_active_session');
+                localStorage.removeItem('fy_gemini_key');
+                
+                alert('Restablecido completo exitoso. La página se recargará.');
+                window.location.reload();
+            }
+        }
+
+        function setupBackupReceiver() {
+            // Can be extended if any cross-origin messaging is required
+        }
+
+
+        // --- HELPER UTILITY FUNCTIONS ---
+
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            const pad = (num) => String(num).padStart(2, '0');
+            return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+        }
+
+        function formatFullDate(timestamp) {
+            const d = new Date(timestamp);
+            const options = { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+            return d.toLocaleDateString('es-ES', options);
+        }
+
+        function formatShortDate(timestamp) {
+            const d = new Date(timestamp);
+            return `${d.getDate()}/${d.getMonth() + 1}`;
+        }
+
+        function formatMsgTime(timestamp) {
+            const d = new Date(timestamp);
+            return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function openModal(modalId) {
+            const m = document.getElementById(modalId);
+            if (m) {
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+            }
+        }
+
+        function closeModal(modalId) {
+            const m = document.getElementById(modalId);
+            if (m) {
+                m.classList.remove('flex');
+                m.classList.add('hidden');
+            }
+        }
+        
+        window.closeModal = closeModal;
+    </script>
+</body>
+</html>
