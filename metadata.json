@@ -1,0 +1,6 @@
+{
+  "name": "Fuerza y Rendimiento",
+  "description": "Aplicación avanzada de musculación y rendimiento deportivo. Registra entrenamientos, calcula récords personales (PR) y obtén recomendaciones de entrenamiento.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
